@@ -86,7 +86,7 @@ class MySqlMessageRepository implements MessageRepository
     {
         $stmt = $this->connection->prepare("SELECT * FROM {$this->tableName} 
           WHERE aggregate_root_id =?
-          ORDER BY time_of_recording");
+          ORDER BY aggregate_root_version ASC");
         $stmt->execute([$id->toString()]);
 
         return $this->yieldMessages($stmt);
@@ -116,5 +116,9 @@ class MySqlMessageRepository implements MessageRepository
                 yield $message;
             }
         }
+
+        return isset($message)
+            ? $message->header(Header::AGGREGATE_ROOT_VERSION) ?: 0
+            : 0;
     }
 }

@@ -27,6 +27,11 @@
     "larapack/dd": "^1.1",
     "ext-json": "*",
     "symfony/http-foundation": "^5.0",
-    "pekhota/mysql-message-repository" : "@dev"
+    "pekhota/mysql-message-repository" : "@dev",
+    "symfony/http-kernel": "^5.0",
+    "symfony/routing": "^5.0"
+  },
+  "require-dev": {
+    "phpstan/phpstan": "^0.12.11"
   }
 }

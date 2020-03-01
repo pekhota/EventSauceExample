@@ -22,11 +22,12 @@ class LampId implements AggregateRootId, JsonSerializable
     }
 
     /**
-     * @return static
+     * @param string $id
+     * @return AggregateRootId
      */
     public static function fromString(string $id): AggregateRootId
     {
-        return new static($id);
+        return new self($id);
     }
 
     /**

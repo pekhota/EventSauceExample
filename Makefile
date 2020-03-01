@@ -23,6 +23,8 @@ restart: ## Restart all or c=<name> containers
 status: ## Show status of containers
 	@$(DOCKER_COMPOSE) -f $(DOCKER_COMPOSE_FILE) ps
 
+phpstan: ## Run phpstan analyse command
+	vendor/bin/phpstan analyse -l 4 -c phpstan.neon ./
 ps: status ## Alias of status
 
 connect: ## Connect to the application container

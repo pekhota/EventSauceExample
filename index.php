@@ -2,42 +2,41 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-
-use App\Lamp;
-use App\LampId;
-use EventSauce\EventSourcing\ConstructingAggregateRootRepository;
-use EventSauce\EventSourcing\Serialization\ConstructingMessageSerializer;
-use Pekhota\MySqlMessageRepository\Connection;
-use Pekhota\MySqlMessageRepository\MySqlMessageRepository;
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 
-$connection = Connection::getInstance()->getConnection();
-$mysqlMessageRepo = new MySqlMessageRepository($connection,
-    new ConstructingMessageSerializer(), 'messages');
 
-$aggregateRootRepository = new ConstructingAggregateRootRepository(
-    Lamp::class,
-    $mysqlMessageRepo,
-    null
-);
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\Controller\ArgumentResolver;
+use Symfony\Component\HttpKernel\Controller\ControllerResolver;
+use Symfony\Component\HttpKernel\EventListener\RouterListener;
+use Symfony\Component\HttpKernel\HttpKernel;
+use Symfony\Component\Routing\Matcher\UrlMatcher;
+use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Routing\RouteCollection;
 
-$uniqueId = LampId::fromString(uniqid('', true));
+/** @var RouteCollection $routes */
+$routes = require __DIR__.'/app/routes.php';
 
-$obj = Lamp::install($uniqueId, Lamp::STATE_OFF, Lamp::LOCATION_KITCHEN);
+$request = Request::createFromGlobals();
 
-$obj->turnOn();
-$obj->turnOff();
-$obj->turnOn();
-$obj->turnOff();
-$obj->turnOn();
-$obj->turnOff();
+$matcher = new UrlMatcher($routes, (new RequestContext())->fromRequest($request));
 
-$aggregateRootRepository->persist($obj);
+$dispatcher = new EventDispatcher();
+$dispatcher->addSubscriber(new RouterListener($matcher, new RequestStack()));
 
+$controllerResolver = new ControllerResolver();
+$argumentResolver = new ArgumentResolver();
 
-$generator = $mysqlMessageRepo->retrieveAll($uniqueId);
+$kernel = new HttpKernel($dispatcher, $controllerResolver, new RequestStack(), $argumentResolver);
 
-echo "<pre>";
-var_dump(iterator_to_array($generator));
-echo "</pre>";
+$response = $kernel->handle($request);
+$response->send();
+
+$kernel->terminate($request, $response);
+
 

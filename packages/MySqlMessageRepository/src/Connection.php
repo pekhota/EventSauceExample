@@ -11,7 +11,7 @@ class Connection
 
     /**
      * Connection constructor.
-     * @param $settings
+     * @param array|null $settings
      */
     private function __construct(array $settings = null)
     {
@@ -24,8 +24,7 @@ class Connection
         $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
         $options = [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES   => false,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
         ];
         try {
             $pdo = new PDO($dsn, $user, $pass, $options);
@@ -35,14 +34,17 @@ class Connection
         }
     }
 
-    public function getConnection() {
+    /**
+     * @return PDO
+     */
+    public function getConnection() : PDO {
         return $this->connection;
     }
 
     public static function getInstance(array $settings = null) : self
     {
         if(empty(self::$instance)) {
-            self::$instance = new static($settings);
+            self::$instance = new self($settings);
         }
 
         return self::$instance;
